@@ -1,6 +1,8 @@
+extern crate rep;
+
 use std::{env, process};
-use std::fs::File;
-use std::io::prelude::*;
+
+use rep::Config;
 
 fn main() {
     // the args function returns an iterator to the command line arguments
@@ -14,34 +16,9 @@ fn main() {
         process::exit(1);
     });
 
-    println!("Querying for '{}' in file '{}'", config.query, config.filename);
+    if let Err(e) = rep::run(config) {
+        println!("error: {}", e);
 
-    let mut f = File::open(config.filename)
-        .expect("File not found!");
-
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect("Error in reading the file!");
-
-    println!("File contains:\n{}", contents);
-}
-
-struct Config {
-    query: String,
-    filename: String,
-}
-
-impl Config {
-    fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments provided");
-        }
-
-        // make a copy of the data for the Config instance to own
-        let query = args[1].clone();
-        let filename = args[2].clone();
-    
-        Ok( Config {query, filename} )
+        process::exit(1);
     }
 }
-
