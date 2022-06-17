@@ -19,8 +19,14 @@ impl Config {
         let query = args[1].clone();
         let filename = args[2].clone();
     
-        // returns true is the environment variable does not exist
-        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+        // returns true if the environment variable does not exist
+        let mut case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+
+        if args.len() > 3 {
+            if args[3].contains("c") {
+                case_sensitive = false;   
+            }
+        }
 
         Ok( Config {query, filename, case_sensitive} )
     }
