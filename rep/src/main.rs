@@ -12,12 +12,12 @@ fn main() {
     
     // unwrap_or_else will pass the inner value of Err to the closure ( |err| )
     let config = Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {}", err);
+        eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
 
     if let Err(e) = rep::run(config) {
-        println!("error: {}", e);
+        eprintln!("error: {}", e);
 
         process::exit(1);
     }
