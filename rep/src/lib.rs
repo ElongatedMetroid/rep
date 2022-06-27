@@ -10,22 +10,27 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments provided");
-        }
+    pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
+        args.next();
 
-        // make a copy of the data for the Config instance to own
-        let query = args[1].clone();
-        let filename = args[2].clone();
+        let query = match args.next() {
+            Some(q) => q,
+            None => return Err("No query provided!"),
+        };
+
+        let filename = match args.next() {
+            Some(f) => f,
+            None => return Err("No filename provided!"),
+        };
     
-        // returns true if the environment variable does not exist
-        let mut case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+        // returns true if the environment variable does exist
+        let mut case_sensitive = env::var("CASE_SENSITIVE").is_ok();
 
         if args.len() > 3 {
-            if args[3].contains("c") {
-                case_sensitive = false;   
-            }
+            case_sensitive = match args.next() {
+                Some(c) => c,
+                None => String::new(),
+            }.contains("c");
         }
 
         Ok( Config {query, filename, case_sensitive} )
@@ -55,31 +60,20 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 // the vector returned will contain string slices that reference slices of the parameter contents
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-    
-    // the lines method returns an iterator to each line
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents.lines()
+        // go through each line of the contents and keep only the lines that contain the query
+        // (keep only the lines where line.contains(query) returns true)
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     // lowercase the query string
     let query = query.to_lowercase();
-    let mut results = Vec::new();
 
-    for line in contents.lines() {
-        // check whether each line converted to lowercase contatains the lowercase query
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents.lines()
+        .filter(|line| line.to_lowercase().contains(&query))
+        .collect()
 } 
 
 #[cfg(test)]
